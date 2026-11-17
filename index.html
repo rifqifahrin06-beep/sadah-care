@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SadahCare – Cek Airmu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef5fb; --surface:#ffffff; --ink:#0c2a4d; --muted:#51698a; --line:#d3e1ef; --brand:#0a4fb3;
+  --g:#16a34a; --gbg:#dcfce7; --y:#ca8a04; --ybg:#fef3b4; --r:#dc2626; --rbg:#fee2e2;
+  --status:var(--g);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#07182c; --surface:#0d2542; --ink:#e6f0fc; --muted:#9db4d2; --line:#1d3b61; --brand:#6fb0ff;
+    --gbg:#0f3a24; --ybg:#40340a; --rbg:#451515; --g:#4ade80; --y:#facc15; --r:#f87171; color-scheme:dark;}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque',Figtree,sans-serif;line-height:1.1;margin:0}
+.wrap{max-width:880px;margin:0 auto;padding:20px 16px 56px}
+header{padding:28px 0 8px}
+header h1{font-size:clamp(2rem,7vw,3.2rem);font-weight:800;color:var(--brand);letter-spacing:-.02em}
+header p{margin:8px 0 0;color:var(--muted);max-width:56ch}
+section{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:18px}
+section h2{font-size:1.4rem;font-weight:700;margin-bottom:4px}
+.sub{color:var(--muted);margin:0 0 16px;font-size:.95rem}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+
+/* gauge */
+.gauge{position:relative;max-width:420px;margin:0 auto}
+.gauge svg{width:100%;display:block}
+.readout{position:absolute;left:0;right:0;bottom:6%;text-align:center}
+.readout b{font:800 clamp(2.6rem,12vw,3.8rem)/1 'Bricolage Grotesque',sans-serif;color:var(--status)}
+.readout span{display:block;color:var(--muted);font-size:.9rem}
+.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.controls input[type=number]{width:130px;font:700 1.3rem Figtree,sans-serif;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.controls input[type=range]{flex:1;min-width:180px;accent-color:var(--brand)}
+label.l{font-weight:700;font-size:.9rem;display:block;margin-bottom:4px}
+
+.verdict{margin-top:18px;border-radius:14px;padding:16px 18px;background:var(--gbg);border-left:8px solid var(--status)}
+.verdict h3{font-size:1.5rem;color:var(--status)}
+.verdict p{margin:6px 0 0}
+.verdict ul{margin:8px 0 0;padding-left:20px}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;font-size:.85rem}
+.legend div{border-radius:10px;padding:8px 10px;font-weight:700}
+.legend .a{background:var(--gbg);color:var(--g)}.legend .b{background:var(--ybg);color:var(--y)}.legend .c{background:var(--rbg);color:var(--r)}
+.legend small{display:block;font-weight:500;color:var(--ink)}
+button{font:700 1rem Figtree,sans-serif;border:0;border-radius:12px;padding:11px 18px;background:var(--brand);color:#fff;cursor:pointer}
+@media (prefers-color-scheme:dark){button{color:#07182c}}
+button.ghost{background:transparent;color:var(--brand);border:2px solid var(--line)}
+
+/* calculator */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 input{width:100%;font:500 1.1rem Figtree,sans-serif;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.result{margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--bg);border:1px dashed var(--line)}
+.result strong{font:800 1.8rem 'Bricolage Grotesque',sans-serif;color:var(--brand)}
+.scale{display:flex;height:12px;border-radius:99px;overflow:hidden;margin-top:12px;position:relative}
+.scale i{flex:1}
+.scale i:nth-child(1){background:#38bdf8}.scale i:nth-child(2){background:#4ade80}.scale i:nth-child(3){background:#facc15}.scale i:nth-child(4){background:#f87171}
+.pin{position:absolute;top:-4px;width:4px;height:20px;background:var(--ink);border-radius:2px;transition:left .3s}
+.scalelab{display:flex;font-size:.75rem;color:var(--muted);margin-top:6px}.scalelab span{flex:1}
+
+/* filter */
+.layers{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;border:2px solid var(--line);max-width:520px}
+.layers div{display:flex;justify-content:space-between;gap:10px;padding:0 14px;align-items:center;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.layers small{font-weight:500;opacity:.95}
+.note{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--ybg);font-size:.92rem}
+
+/* history */
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:28px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}.legend{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>SadahCare – Cek Airmu</h1>
+  <p>Masukkan angka dari TDS meter, lihat warna statusnya, lalu ikuti langkah yang disarankan untuk air bersih di rumahmu.</p>
+</header>
+
+<!-- 1. TDS CHECK -->
+<section id="cek" aria-labelledby="t1">
+  <h2 id="t1">Cek kadar TDS air</h2>
+  <p class="sub">Celupkan TDS meter, tunggu angka stabil, lalu isi angkanya di sini.</p>
+
+  <div class="gauge">
+    <svg viewBox="0 0 300 175" role="img" aria-label="Pengukur kadar TDS">
+      <path id="arcG" d="M30 150 A120 120 0 0 1 90.0 46.1" fill="none" stroke="var(--g)" stroke-width="22"/>
+      <path id="arcY" d="" fill="none" stroke="var(--y)" stroke-width="22"/>
+      <path id="arcR" d="" fill="none" stroke="var(--r)" stroke-width="22"/>
+      <g id="needle" style="transform-origin:150px 150px;transition:transform .5s cubic-bezier(.3,1.4,.5,1)">
+        <path d="M150 150 L150 48" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="150" cy="150" r="9" fill="var(--ink)"/>
+      </g>
+      <text x="22" y="170" font-size="11" fill="var(--muted)">0</text>
+      <text x="262" y="170" font-size="11" fill="var(--muted)">1000+</text>
+    </svg>
+    <div class="readout"><b id="big">420</b><span>ppm</span></div>
+  </div>
+
+  <div class="controls">
+    <div>
+      <label class="l" for="ppm">Angka TDS meter (ppm)</label>
+      <input id="ppm" type="number" min="0" max="3000" step="1" value="420" inputmode="numeric">
+    </div>
+    <input id="rng" type="range" min="0" max="1000" step="5" value="420" aria-label="Geser angka ppm">
+  </div>
+
+  <div class="verdict" id="verdict" aria-live="polite">
+    <h3 id="vt"></h3><p id="vd"></p><ul id="vl"></ul>
+  </div>
+
+  <div class="legend">
+    <div class="a">Hijau – Aman<small>kurang dari 500 ppm</small></div>
+    <div class="b">Kuning – Hati-hati<small>500 – 700 ppm</small></div>
+    <div class="c">Merah – Bahaya<small>lebih dari 700 ppm</small></div>
+  </div>
+
+  <div class="row">
+    <button id="save">Simpan hasil ke riwayat</button>
+  </div>
+</section>
+
+<!-- 2. HARDNESS CALC -->
+<section id="sadah" aria-labelledby="t2">
+  <h2 id="t2">Hitung indeks kesadahan (ppm CaCO₃)</h2>
+  <p class="sub">TDS mengukur semua zat terlarut. Kesadahan hanya menghitung kalsium dan magnesium. Jika punya hasil uji laboratorium atau test kit, isi di bawah ini.</p>
+  <div class="grid2">
+    <div><label class="l" for="ca">Kalsium, Ca (mg/L)</label><input id="ca" type="number" min="0" step="any" placeholder="mis. 60" inputmode="decimal"></div>
+    <div><label class="l" for="mg">Magnesium, Mg (mg/L)</label><input id="mg" type="number" min="0" step="any" placeholder="mis. 20" inputmode="decimal"></div>
+  </div>
+  <div class="result" aria-live="polite">
+    <div>Kesadahan total: <strong id="hv">–</strong> <span>ppm CaCO₃</span></div>
+    <div id="hc" style="font-weight:700;margin-top:2px">Isi kalsium dan/atau magnesium untuk melihat hasil.</div>
+    <div class="scale"><i></i><i></i><i></i><i></i><span class="pin" id="pin" style="left:0"></span></div>
+    <div class="scalelab"><span>Lunak<br>0–60</span><span>Sedang<br>61–120</span><span>Sadah<br>121–180</span><span>Sangat sadah<br>&gt;180</span></div>
+  </div>
+  <p class="sub" style="margin-top:12px">Rumus: kesadahan = 2,497 × Ca + 4,118 × Mg. Klasifikasi mengikuti skala umum WHO/USGS.</p>
+</section>
+
+<!-- 3. FILTER -->
+<section id="saringan" aria-labelledby="t3">
+  <h2 id="t3">Alur saringan air SadahCare</h2>
+  <p class="sub">Dua ember 20 liter (tinggi 35 cm). Ember 1 berisi media saring, air mengalir lewat kran ke Ember 2 sebagai penampung air bersih.</p>
+  <div class="layers" role="list">
+    <div role="listitem" style="height:42px;background:#8a7a2c"><span>Ijuk</span><small>3 cm</small></div>
+    <div role="listitem" style="height:86px;background:#5d8a3a"><span>Zeolit</span><small>10 cm · 2 kg</small></div>
+    <div role="listitem" style="height:56px;background:#1f2937"><span>Arang aktif</span><small>5 cm · 1 kg</small></div>
+    <div role="listitem" style="height:86px;background:#b8955a"><span>Pasir silika</span><small>10 cm · 3 kg</small></div>
+    <div role="listitem" style="height:56px;background:#7c4a2d"><span>Kerikil</span><small>5 cm · 1,5 kg</small></div>
+  </div>
+  <p class="sub" style="margin:10px 0 0">Urutan dari atas (air masuk) ke bawah (menuju kran).</p>
+  <div class="note"><b>Perawatan:</b> jika hasil ukur lebih dari 700 ppm, ganti atau cuci zeolit dengan air garam, lalu ukur ulang air di Ember 2.</div>
+</section>
+
+<!-- 4. HISTORY -->
+<section id="riwayat" aria-labelledby="t4">
+  <h2 id="t4">Riwayat pengukuran</h2>
+  <p class="sub">Tersimpan di browser ini saja.</p>
+  <div id="hist"></div>
+  <div class="row"><button class="ghost" id="clear">Hapus riwayat</button></div>
+</section>
+
+<footer>SadahCare · Ukur, cocokkan warna, tindak lanjuti.<br>Panduan ini bersifat edukatif; untuk air minum, uji laboratorium tetap paling akurat.</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cx=150,cy=150,R=120;
+// gauge: 0..1000 ppm over 180 degrees
+const pt=v=>{const a=Math.PI*(1-Math.min(v,1000)/1000);return[cx+R*Math.cos(a),cy-R*Math.sin(a)]};
+const arc=(a,b)=>{const[x1,y1]=pt(a),[x2,y2]=pt(b);return`M${x1.toFixed(1)} ${y1.toFixed(1)} A${R} ${R} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`};
+$('arcG').setAttribute('d',arc(0,498));
+$('arcY').setAttribute('d',arc(502,698));
+$('arcR').setAttribute('d',arc(702,1000));
+
+const levels={
+  g:{n:'Hijau – Aman',c:'--g',b:'--gbg',d:'Kadar TDS rendah. Air layak dipakai untuk kebutuhan rumah tangga.',
+     l:['Jika untuk minum, robus (rebus) dulu sampai mendidih.','Ukur ulang secara berkala, misalnya seminggu sekali.']},
+  y:{n:'Kuning – Hati-hati',c:'--y',b:'--ybg',d:'Kadar TDS mulai tinggi. Air belum aman diminum langsung.',
+     l:['Saring ulang 1 kali melalui saringan SadahCare.','Jangan diminum langsung; ukur lagi setelah disaring.']},
+  r:{n:'Merah – Bahaya',c:'--r',b:'--rbg',d:'Kadar TDS sangat tinggi. Air jangan dipakai.',
+     l:['Ganti atau cuci zeolit dengan air garam.','Saring ulang, lalu ukur kembali di Ember 2.','Jika tetap di atas 700 ppm, cari sumber air lain.']}
+};
+const lv=v=>v<500?'g':v<=700?'y':'r';
+
+function render(v){
+  v=Math.max(0,Number(v)||0);
+  const k=lv(v),L=levels[k],root=document.documentElement.style;
+  root.setProperty('--status',`var(${L.c})`);
+  $('big').textContent=Math.round(v);
+  $('needle').style.transform=`rotate(${(Math.min(v,1000)/1000)*180-90}deg)`;
+  const vd=$('verdict');vd.style.background=`var(${L.b})`;
+  $('vt').textContent=L.n+' · '+Math.round(v)+' ppm';
+  $('vd').textContent=L.d;
+  $('vl').innerHTML=L.l.map(t=>`<li>${t}</li>`).join('');
+  return k;
+}
+$('ppm').addEventListener('input',e=>{$('rng').value=Math.min(e.target.value,1000);render(e.target.value)});
+$('rng').addEventListener('input',e=>{$('ppm').value=e.target.value;render(e.target.value)});
+render(420);
+
+// hardness
+function hard(){
+  const ca=parseFloat($('ca').value)||0,mg=parseFloat($('mg').value)||0;
+  if(!$('ca').value&&!$('mg').value){$('hv').textContent='–';$('hc').textContent='Isi kalsium dan/atau magnesium untuk melihat hasil.';$('pin').style.left='0';return}
+  const h=2.497*ca+4.118*mg;
+  const c=h<=60?'Lunak':h<=120?'Sedang':h<=180?'Sadah':'Sangat sadah';
+  $('hv').textContent=h.toFixed(1);$('hc').textContent='Kategori: '+c;
+  $('pin').style.left=`calc(${Math.min(h/240,1)*100}% - 2px)`;
+}
+$('ca').addEventListener('input',hard);$('mg').addEventListener('input',hard);
+
+// history
+const KEY='sadahcare-riwayat';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}};
+const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
+function drawHist(){
+  const a=load();
+  if(!a.length){$('hist').innerHTML='<p class="sub">Belum ada data. Simpan hasil pengukuran pertamamu di bagian atas.</p>';return}
+  $('hist').innerHTML='<table><thead><tr><th>Waktu</th><th>TDS</th><th>Status</th></tr></thead><tbody>'+
+   a.map(r=>`<tr><td>${r.t}</td><td>${r.v} ppm</td><td><span class="dot" style="background:var(${levels[r.k].c})"></span>${levels[r.k].n}</td></tr>`).join('')+'</tbody></table>';
+}
+$('save').addEventListener('click',()=>{
+  const v=Math.round(Number($('ppm').value)||0),a=load();
+  a.unshift({v,k:lv(v),t:new Date().toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'})});
+  store(a.slice(0,20));drawHist();
+});
+$('clear').addEventListener('click',()=>{store([]);drawHist()});
+drawHist();
+</script>
+</body>
+</html>
